@@ -1,4 +1,4 @@
-package org.lpl.concurrent;
+package org.lpl.concurrent.future;
 
 
 import static java.util.concurrent.TimeUnit.*;
@@ -8,65 +8,39 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author lpl
+ * @author lpenglei@163.com
  * @version 1.0
  * @date 2019/7/3
  **/
 public class CompletableFutureDemo {
 
-  public static void drinkTea() {
-
-    CompletableFuture<Void> f1 = CompletableFuture.runAsync(() -> {
-      System.out.println("T1:洗水壶");
-      sleep(1, TimeUnit.SECONDS);
-
-      System.out.println("T1: 烧开水......");
-      sleep(15, TimeUnit.SECONDS);
-    });
-
-    CompletableFuture<String> f2 = CompletableFuture.supplyAsync(() -> {
-      System.out.println("T2:洗茶壶");
-      sleep(1, SECONDS);
-
-      System.out.println("T2:洗茶杯");
-      sleep(2, SECONDS);
-
-      System.out.println("T2:拿茶叶");
-      sleep(1, SECONDS);
-      return "绿茶";
-    });
-
-    CompletableFuture<String> f3 =
-        f1.thenCombine(f2, (__, tf) -> {
-          System.out.println("T1:拿到茶叶:" + tf);
-
-          System.out.println("T1:泡茶");
-
-          return "上茶" + tf;
-        });
-
-    System.out.println(f3.join());
-  }
-
   /**
    * 串行关系
    */
   public static void serial() {
+
     CompletableFuture<String> f0 = CompletableFuture
         .supplyAsync(() -> "hello word")
         .thenApply(s -> s + "QQ")
         .thenApply(String::toUpperCase);
 
+    CompletableFuture<String> f1 = CompletableFuture
+        .supplyAsync(() -> "tencent");
+
     System.out.println(f0.join());
   }
 
   /**
-   * 并行的
+   * 并行的 参考喝茶例子
    */
   public static void parallel() {
 
   }
 
+  /**
+   * 或者关系
+   * <p>任务1、任务2任何一个完成 结束任务</p>
+   */
   public static void either() {
 
     CompletableFuture<String> f1 = CompletableFuture.supplyAsync(() -> {
@@ -85,7 +59,7 @@ public class CompletableFutureDemo {
     System.out.println(f3.join());
   }
 
-  public static int getRandom() {
+  private static int getRandom() {
     Random random = new Random();
     int num = random.nextInt(10);
     System.out.println(num);
@@ -103,6 +77,21 @@ public class CompletableFutureDemo {
     System.out.println(f1.join());
   }
 
+  public static void async() {
+
+    CompletableFuture<String> f0 = CompletableFuture
+        .supplyAsync(() -> {
+
+          sleep(2, SECONDS);
+          return Thread.currentThread().getName() + ">1\n";
+        })
+        .thenApplyAsync(s -> s + Thread.currentThread().getName() + ">2\n")
+        .thenApplyAsync(s -> s + Thread.currentThread().getName() + ">3\n")
+        .thenApplyAsync(s -> s + Thread.currentThread().getName() + ">4\n");
+
+    System.out.println(f0.join());
+  }
+
   /**
    *
    */
@@ -116,8 +105,9 @@ public class CompletableFutureDemo {
   public static void main(String[] args) {
     //drinkTea();
     //serial();
-//    either();
-
-    exception();
+    //either();
+    //serial();
+    async();
+    //exception();
   }
 }
